@@ -13,5 +13,5 @@ $ catkin build
 # Example usage  
 - Launch ```erl_vicon.launch``` from ```vicon_bridge``` 
 ```
-$ roslaunch vicon_bridge erl_vicon.launch model=robot_1 datastream_hostport=192.168.30.152:801 
+$ roslaunch vicon_bridge erl_vicon.launch model:=robot_1 datastream_hostport:=192.168.30.152:801  
 ```
