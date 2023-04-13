@@ -10,6 +10,7 @@ ViconOdom::ViconOdom(ros::NodeHandle &nh)
   double max_accel;
   nh.param("max_accel", max_accel, 5.0);
   nh.param("publish_tf", publish_tf_, false);
+  nh.param("twist_on_body_frame", twist_on_body_frame_, false);
   nh.param<std::string>("child_frame_id", child_frame_id_, "base_link");
   if(publish_tf_ && child_frame_id_.empty())
     throw std::runtime_error("vicon_odom: child_frame_id required for publishing tf");
@@ -63,15 +64,29 @@ void ViconOdom::ViconCallback(const geometry_msgs::TransformStampedConstPtr &msg
   const KalmanFilter::State_t state = kf_.getState();
   const KalmanFilter::ProcessCov_t proc_noise = kf_.getProcessNoise();
 
+  static Eigen::Matrix3d R_prev(Eigen::Matrix3d::Identity());
+  Eigen::Matrix3d R(Eigen::Quaterniond(msg->orientation.w, msg->orientation.x,
+                                       msg->orientation.y, msg->orientation.z));
+
   nav_msgs::Odometry odom_msg;
   odom_msg.header = msg->header;
   odom_msg.child_frame_id = child_frame_id_;
   odom_msg.pose.pose.position.x = state(0);
   odom_msg.pose.pose.position.y = state(1);
   odom_msg.pose.pose.position.z = state(2);
-  odom_msg.twist.twist.linear.x = state(3);
-  odom_msg.twist.twist.linear.y = state(4);
-  odom_msg.twist.twist.linear.z = state(5);
+  if(twist_on_body_frame_==false) {
+    // world frame
+    odom_msg.twist.twist.linear.x = state(3);
+    odom_msg.twist.twist.linear.y = state(4);
+    odom_msg.twist.twist.linear.z = state(5);
+  } else {
+    // body frame
+    const Eigen::Vector3d globalLinearTwist(state(3),state(4),state(5));
+    const Eigen::Vector3d bodyLinearTwist = R.transpose() * globalLinearTwist;
+    odom_msg.twist.twist.linear.x = bodyLinearTwist(0);
+    odom_msg.twist.twist.linear.y = bodyLinearTwist(1);
+    odom_msg.twist.twist.linear.z = bodyLinearTwist(2);
+  }
   for(int i = 0; i < 3; i++)
   {
     for(int j = 0; j < 3; j++)
@@ -84,17 +99,22 @@ void ViconOdom::ViconCallback(const geometry_msgs::TransformStampedConstPtr &msg
   odom_msg.pose.pose.orientation = msg->transform.rotation;
 
   // Single step differentitation for angular velocity
-  static Eigen::Matrix3d R_prev(Eigen::Matrix3d::Identity());
-  Eigen::Matrix3d R(Eigen::Quaterniond(msg->transform.rotation.w, msg->transform.rotation.x,
-                                       msg->transform.rotation.y, msg->transform.rotation.z));
+
   if(dt > 1e-6)
   {
     const Eigen::Matrix3d R_dot = (R - R_prev) / dt;
-    const Eigen::Matrix3d w_hat = R_dot * R.transpose();
 
-    odom_msg.twist.twist.angular.x = w_hat(2, 1);
-    odom_msg.twist.twist.angular.y = w_hat(0, 2);
-    odom_msg.twist.twist.angular.z = w_hat(1, 0);
+    if(twist_on_body_frame_==false) {
+      const Eigen::Matrix3d w_hat = R_dot * R.transpose(); // twist in world frame
+      odom_msg.twist.twist.angular.x = w_hat(2, 1);
+      odom_msg.twist.twist.angular.y = w_hat(0, 2);
+      odom_msg.twist.twist.angular.z = w_hat(1, 0);
+    } else {
+      const Eigen::Matrix3d w_hat = R.transpose() * R_dot; // twist in body frame
+      odom_msg.twist.twist.angular.x = w_hat(2, 1);
+      odom_msg.twist.twist.angular.y = w_hat(0, 2);
+      odom_msg.twist.twist.angular.z = w_hat(1, 0);
+    }
   }
   R_prev = R;
 

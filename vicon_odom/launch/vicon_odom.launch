@@ -2,6 +2,7 @@
   <arg name="model"/>
   <arg name="child_frame_id" default="$(arg model)/base_link"/>
   <arg name="publish_tf" default="false"/>
+  <arg name="twist_on_body_frame" default="false"/>
   <arg name="vicon_fps" default="100"/>
   <arg name="output" default="screen"/>
 
@@ -9,6 +10,7 @@
     output="$(arg output)" ns="vicon">
     <param name="child_frame_id" type="string" value="$(arg child_frame_id)"/>
     <param name="publish_tf" type="bool" value="$(arg publish_tf)"/>
+    <param name="twist_on_body_frame" type="bool" value="$(arg twist_on_body_frame)" />
     <param name="max_accel" value="10.0"/>
     <param name="vicon_fps" type="int" value="$(arg vicon_fps)"/>
     <remap from="~vicon_subject" to="$(arg model)"/>

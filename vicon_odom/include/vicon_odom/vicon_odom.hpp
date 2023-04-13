@@ -27,6 +27,7 @@ class ViconOdom
   std::string child_frame_id_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
   bool publish_tf_;
+  bool twist_on_body_frame_;
   ros::Subscriber vicon_sub_;
 };
 

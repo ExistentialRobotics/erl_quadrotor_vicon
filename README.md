@@ -15,3 +15,6 @@ $ catkin build
 ```
 $ roslaunch vicon_bridge erl_vicon.launch model:=robot_1 datastream_hostport:=192.168.30.152:801  
 ```
+
+# Coordinate Frames 
+The solution proposed in the following commit [d58c043](https://github.com/beniaminopozzan/vicon/commit/d58c043a35d1a27518012f05115722f5d659dd26?diff=split) has been used to enable expressing twist in ```child_frame_id```
