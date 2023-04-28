@@ -65,8 +65,8 @@ void ViconOdom::ViconCallback(const geometry_msgs::TransformStampedConstPtr &msg
   const KalmanFilter::ProcessCov_t proc_noise = kf_.getProcessNoise();
 
   static Eigen::Matrix3d R_prev(Eigen::Matrix3d::Identity());
-  Eigen::Matrix3d R(Eigen::Quaterniond(msg->orientation.w, msg->orientation.x,
-                                       msg->orientation.y, msg->orientation.z));
+  Eigen::Matrix3d R(Eigen::Quaterniond(msg->transform.rotation.w, msg->transform.rotation.x,
+                                       msg->transform.rotation.y, msg->transform.rotation.z));
 
   nav_msgs::Odometry odom_msg;
   odom_msg.header = msg->header;
