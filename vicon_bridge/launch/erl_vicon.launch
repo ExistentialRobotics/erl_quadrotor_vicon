@@ -3,12 +3,12 @@
 <launch>
 
   <!--############### Parameters ###################-->
-    <arg name="datastream_hostport" default="192.168.30.152:801"/>
+    <arg name="datastream_hostport" default="192.168.30.153:801"/>
     <arg name="model" default="robot_1"/>
     <arg name="child_frame_id" default="base_link"/>
     <arg name="vicon_world_frame" default="odom"/>
     <arg name="publish_tf" default="false"/>
-    <arg name="twist_on_body_frame" default="false"/>
+    <arg name="twist_on_body_frame" default="true"/>
     <arg name="vicon_fps" default="100"/>
     <arg name="output" default="screen"/>
 
